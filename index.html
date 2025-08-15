@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>📈 Mausam's Algo Trading Dashboard</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <style>
+    :root {
+      /* Default Dark Theme vars (toggled by class) */
+      --bg-main: #1e1e1e;
+      --bg-panel: #1a1a1a;
+      --bg-topbar: #111;
+      --border-color: #333;
+      --text-color: #ddd;
+      --accent: #007bff;
+    }
+
+    body.light-theme {
+      /* Light Pastel Theme */
+      --bg-main: #f8f9fa;
+      --bg-panel: #ffffff;
+      --bg-topbar: #f0f4f8;
+      --border-color: #ccc;
+      --text-color: #333;
+      --accent: #ff8c00;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: var(--bg-main);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Toolbar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-topbar);
+      padding: 6px 12px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .topbar h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--accent);
+    }
+    .topbar .btn-group {
+      display: flex;
+      gap: 5px;
+    }
+    .topbar button {
+      padding: 5px 10px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .topbar button:hover {
+      opacity: 0.85;
+    }
+
+    /* Main Layout */
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Panel */
+    .left-panel {
+      width: 400px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .input-group {
+      display: flex;
+      gap: 5px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 5px;
+      font-size: 13px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--bg-main);
+      color: var(--text-color);
+    }
+    .input-group button {
+      padding: 5px 8px;
+      font-size: 12px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-main);
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 4px;
+      text-align: center;
+    }
+    th {
+      background: var(--bg-topbar);
+      color: var(--text-color);
+    }
+    td button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+    }
+    td button img {
+      width: 16px;
+      height: 16px;
+      filter: invert(1);
+    }
+    body.light-theme td button img {
+      filter: invert(0);
+    }
+
+    /* Right Panel (Chart) */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-main);
+      padding: 8px;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 5px;
+      gap: 10px;
+      align-items: center;
+    }
+    .chart-header select, .chart-header button {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 6px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    #chart {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+    #chartCanvas {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 640px;
+    }
+  </style>
+</head>
+
+<!-- default to light theme; toggleTheme() will flip it -->
+<body class="light-theme">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <h1>📈 Mausam's Algo Dashboard</h1>
+    <div class="btn-group">
+      <!-- Added IDs so script.js can safely attach to them -->
+      <button id="marketSentimentBtn" onclick="getSentiment()">📊 Analyze</button>
+      <button id="runScreenerBtn" onclick="runScreener()">🔎 Screener</button>
+      <button onclick="toggleTheme()">🎨 Theme</button>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-container">
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="input-group">
+        <input type="text" id="symbolInput" value="ACC" placeholder="Enter symbol (e.g., TCS)" />
+        <button onclick="startBot()">Add</button>
+      </div>
+
+      <!-- Watchlist Table -->
+      <table id="watchlistTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Fetch</th>
+            <th>Chart</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody id="watchlistBody"></tbody>
+      </table>
+
+      
+      <!-- Bot Output Table -->
+      <h3 style="margin-top:10px;">🤖 Bot Output</h3>
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>LTP</th>
+            <th>Buy</th>
+            <th>Sell</th>
+            <th>Prediction</th>
+            <th>Chart</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7" style="text-align:center;">No Data</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="chart-header" id="chartControls">
+        <label for="timeframeSelect" style="margin-right:5px; color: var(--text-color);">Timeframe:</label>
+        <select id="timeframeSelect">
+          <option value="1m">1m</option>
+          <option value="3m">3m</option>
+          <option value="5m" selected>5m</option>
+          <option value="10m">10m</option>
+          <option value="15m">15m</option>
+          <option value="30m">30m</option>
+          <option value="1h">1h</option>
+          <option value="3h">3h</option>
+          <option value="5h">5h</option>
+          <option value="1d">1d</option>
+        </select>
+
+        <label for="indicatorSelect" style="margin-left:10px; margin-right:5px; color: var(--text-color);">Indicator:</label>
+        <select id="indicatorSelect">
+          <option value="">-- None --</option>
+          <option value="atr-sl">ATR SL Crossover Strategy</option>
+        </select>
+
+        <button id="applyIndicatorBtn" style="padding:6px 8px; background:var(--accent); color:#fff; border-radius:4px;">Apply</button>
+      </div>
+
+      <!-- Chart container (canvas inside) -->
+      <div id="chart">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- small helper scripts + Chart.js before your script.js -->
+  <script>
+    // Theme toggle helper
+    function toggleTheme() {
+      document.body.classList.toggle("light-theme");
+    }
+
+    // Compatibility wrapper:
+    // If your script.js defines loadChart(symbol, timeframe) this will call it.
+    // If script.js relies on showChart(symbol), this wrapper will provide it.
+    function showChart(symbolInput, timeframeInput) {
+      const symbol = (typeof symbolInput === 'string' && symbolInput) ? symbolInput : (document.getElementById("symbolInput")?.value || '').trim();
+      const timeframe = timeframeInput || document.getElementById("timeframeSelect")?.value || '5m';
+
+      if (!symbol) {
+        alert("Please enter a symbol first.");
+        return;
+      }
+
+      if (typeof loadChart === 'function') {
+        // preferred function (your current script.js has loadChart)
+        return loadChart(symbol, timeframe);
+      } else if (typeof window._showChart === 'function') {
+        // in case you defined a different name previously
+        return window._showChart(symbol, timeframe);
+      } else {
+        // As a fallback hit the backend chart endpoint directly and try to render image or JSON
+        const urlJson = `/chart/${encodeURIComponent(symbol)}?timeframe=${encodeURIComponent(timeframe)}`;
+        // Try JSON first (your app.py route returns JSON { symbol, data: [...] })
+        fetch(urlJson)
+          .then(r => {
+            if (!r.ok) throw r;
+            return r.json();
+          })
+          .then(payload => {
+            if (payload && payload.data && payload.data.length) {
+              // if Chart.js exists, draw it (simple line of closes)
+              if (typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('chartCanvas').getContext('2d');
+                // destroy existing chart instance if present
+                if (window.__mausam_chart) window.__mausam_chart.destroy();
+
+                window.__mausam_chart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                    labels: payload.data.map(d => d.time),
+                    datasets: [{ label: `${payload.symbol} Close`, data: payload.data.map(d => d.close), borderColor: 'rgba(0,123,255,1)', fill: false }]
+                  },
+                  options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
+              }
+            }
+            // if not JSON or no data, try image endpoint (if your backend serves image)
+            throw new Error('No JSON chart data');
+          })
+          .catch(() => {
+            // attempt to fetch an image from /chart?symbol=...
+            const imgUrl = `/chart?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}`;
+            // If the backend serves an image at /chart (without path param) you can use this:
+            const chartCanvas = document.getElementById('chartCanvas');
+            // hide canvas while loading image fallback
+            chartCanvas.style.display = 'none';
+            // create an image element
+            let img = document.getElementById('chartImageFallback');
+            if (!img) {
+              img = document.createElement('img');
+              img.id = 'chartImageFallback';
+              img.style.maxWidth = '100%';
+              img.style.maxHeight = '100%';
+              img.style.border = '1px solid var(--border-color)';
+              const chartDiv = document.getElementById('chart');
+              chartDiv.appendChild(img);
+            }
+            img.src = imgUrl + '&_=' + Date.now();
+            img.onload = () => { img.style.display = 'block'; chartCanvas.style.display = 'none'; };
+            img.onerror = () => { img.style.display = 'none'; chartCanvas.style.display = 'block'; alert('Failed to load chart from backend'); };
+          });
+      }
+    }
+
+    // Utility called by the Show Chart button
+    function showChartFromInput() {
+      const sym = document.getElementById('symbolInput')?.value?.trim();
+      const tf = document.getElementById('timeframeSelect')?.value;
+      showChart(sym, tf);
+    }
+
+    // wire chart button once DOM is ready (defensive)
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('chartBtn');
+      if (btn) btn.addEventListener('click', showChartFromInput);
+
+      // Wire Apply indicator button to call an indicator apply function (if implemented in script.js)
+      const applyBtn = document.getElementById('applyIndicatorBtn');
+      if (applyBtn) applyBtn.addEventListener('click', async () => {
+        const symbol = document.getElementById('symbolInput')?.value?.trim();
+        const timeframe = document.getElementById('timeframeSelect')?.value;
+        const indicator = document.getElementById('indicatorSelect')?.value;
+        if (!symbol) { alert('Enter symbol'); return; }
+        // If you implemented window.Indicators.fetch... use that, otherwise simply reload chart
+        if (window.Indicators && typeof window.Indicators.fetchATRSLSignals === 'function') {
+          // ensure chart is shown first
+          await showChart(symbol, timeframe);
+          const signals = await window.Indicators.fetchATRSLSignals(symbol, timeframe);
+          if (typeof window.Indicators.plotATRSLSignals === 'function') {
+            window.Indicators.plotATRSLSignals(window.__mausam_chart, signals);
+          }
+        } else {
+          // fallback: just reload the chart
+          showChart(symbol, timeframe);
+        }
+      });
+    });
+  </script>
+
+  <!-- Chart.js (CDN) - required by the JS fallback visualizer -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Your main frontend script (must be last) -->
+  <script src="/static/js/script.js"></script>
+</body>
+</html>

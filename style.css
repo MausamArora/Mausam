@@ -1,0 +1,158 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 30px;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #2d3436;
+}
+
+h1 {
+  text-align: center;
+  color: #2d3436;
+  margin-bottom: 30px;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+input[type="text"], select {
+  padding: 10px;
+  font-size: 16px;
+  min-width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  padding: 10px 16px;
+  font-size: 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #6c5ce7;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #5a4bd8;
+}
+
+pre {
+  background: #ecf0f1;
+  padding: 15px;
+  font-size: 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+#resultTable {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+#resultTable th, #resultTable td {
+  padding: 12px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+#resultTable th {
+  background-color: #6c5ce7;
+  color: white;
+}
+
+#chartImage {
+  display: block;
+  margin: 30px auto;
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+@media (max-width: 600px) {
+  .input-group {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  input, select, button {
+    width: 100%;
+    max-width: 90%;
+  }
+
+  #resultTable {
+    font-size: 12px;
+  }
+}
+.chart-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 16px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.chart-container h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #2d3436;
+}
+
+#chartImage {
+  width: 100%;
+  max-width: 850px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+#botOutputTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#botOutputTable th, #botOutputTable td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+#botOutputTable th {
+    background-color: #f4f4f4;
+}
+
+.btn-action {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color, #ccc);
+    cursor: pointer;
+}
+
+.btn-buy {
+    background: #2e7d32;
+    color: #fff;
+}
+
+.btn-sell {
+    background: #c62828;
+    color: #fff;
+}
+
+.btn-icon {
+    padding: 4px 6px;
+}
